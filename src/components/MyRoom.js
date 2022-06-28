@@ -11,7 +11,7 @@ import Janus from "./Janus";
 import $ from "jquery";
 import { Container, Row, Col } from "react-bootstrap";
 
-const server = "http://172.16.10.65:8088/janus";
+const server = "http://192.168.1.42:8088/janus";
 // server = process.env.REACT_APP_JANUS_URL;
 let janusRoom = null;
 let vroomHandle = null;
@@ -42,6 +42,9 @@ const MyRoom = (props) => {
         const publish = { request: "configure", audio: useAudio, video: true };
         vroomHandle.send({ message: publish, jsep: jsep });
       },
+      onMute : function(res) {
+            console.log("res::", res)
+      },
       error: function (error) {
         Janus.error("WebRTC error:", error);
         if (useAudio) {
@@ -52,6 +55,8 @@ const MyRoom = (props) => {
   };
   const newRemoteFeed = (id, display, audio, video) => {
     // A new feed has been published, create a new plugin handle and attach to it as a subscriber
+    console.log("onremote feed")
+
     let remoteFeed = null;
     janusRoom.attach({
       plugin: "janus.plugin.videoroom",
@@ -93,7 +98,7 @@ const MyRoom = (props) => {
           if (event === "attached") {
             console.log(`subscriber created and attached!`);
             // Subscriber created and attached
-            for (let i = 1; i < 6; i++) {
+            for (let i = 1; i < 600; i++) {
               if (!feeds[i]) {
                 feeds[i] = remoteFeed;
                 remoteFeed.rfindex = i;
@@ -111,7 +116,7 @@ const MyRoom = (props) => {
                 ") in room " +
                 msg["room"]
             );
-            $("#remote" + remoteFeed.rfindex)
+            $("#remote1")
               .removeClass("hide")
               .html(remoteFeed.rfdisplay)
               .show();
@@ -182,7 +187,6 @@ const MyRoom = (props) => {
           );
           // Show the video, hide the spinner and show the resolution when we get a playing event
           $("#remotevideo" + remoteFeed.rfindex).bind("playing", function () {
-            console.log("isMuted:::");
             if (remoteFeed.spinner) remoteFeed.spinner.stop();
             remoteFeed.spinner = null;
             $("#waitingvideo" + remoteFeed.rfindex).remove();
@@ -212,7 +216,9 @@ const MyRoom = (props) => {
           stream
         );
         let videoTracks = stream.getVideoTracks();
-
+        // stream.onMute((res) => {
+        //   console.log("muted", res)
+        // })
         if (!videoTracks || videoTracks.length === 0) {
           // No remote video
           $("#remotevideo" + remoteFeed.rfindex).hide();
@@ -487,6 +493,15 @@ const MyRoom = (props) => {
     } else {
       vroomHandle.muteAudio(handleId);
     }
+    vroomHandle.createOffer({
+        media: { removeAudio: !isMute },
+        success: (jsep: JanusJS.JSEP) => {
+            vroomHandle.send({ message: { request: "configure" }, jsep: jsep })
+        },
+        error: (error: any) => {
+            console.log("Error::", error)
+        },
+      })
     setIsMuted(!isMute);
   };
   const muteVideo = () => {
@@ -505,6 +520,9 @@ const MyRoom = (props) => {
   useEffect(() => {
     if (vroomHandle) {
       console.log("on mute event");
+      vroomHandle.onremotestream((strem) => {
+        console.log("strem::",strem)
+      })
       console.log(vroomHandle);
     }
   }, [vroomHandle]);
