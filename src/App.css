@@ -12,7 +12,10 @@
     animation: App-logo-spin infinite 20s linear;
   }
 }
-
+.card-media-image {
+  width: 100%;
+    height: 276px;
+}
 .App-header {
   background-color: #282c34;
   min-height: 10vh;
@@ -43,7 +46,7 @@
 .vidicon {
   width: 34px;
   height: 34px;
-  color: #31639c;
+  color: #fff;
   border: 1px solid black;
   border-radius: 17px;
   padding: 2px 4px 4px 8px;
@@ -110,4 +113,15 @@ a:hover {
     position: absolute;
     right: 20px;
     bottom: 20px;
+}
+.waiting {
+  justify-content: center;
+    display: flex;
+    margin-top: 125px;
+}
+
+#videoremote1 {
+  padding-top: 14px;
+    padding-left: 0px;
+    padding-right: 0;
 }
