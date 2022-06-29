@@ -30,8 +30,8 @@ const MyRoom = (props) => {
   const publishOwnFeed = (useAudio) => {
     vroomHandle.createOffer({
       media: {
-        audioRecv: false,
-        videoRecv: false,
+        audioRecv: true,
+        videoRecv: true,
         audioSend: useAudio,
         videoSend: true,
       },
@@ -54,7 +54,12 @@ const MyRoom = (props) => {
     janusRoom.attach({
       plugin: "janus.plugin.videoroom",
       opaqueId: opaqueId,
+      
       success: function (pluginHandle) {
+        console.log('pluginHandle', pluginHandle)
+        console.log('pluginHandle::', pluginHandle.webrtcStuff)
+        console.log("audio::", audio)
+      
        remoteFeed = pluginHandle;
        let subscribe = {
           request: "join",
@@ -70,10 +75,8 @@ const MyRoom = (props) => {
         Janus.error("  -- Error attaching plugin...", error);
       },
       onmessage: function (msg, jsep) {
-        Janus.debug(" ::: Got a message (subscriber) :::", msg);
-
+        console.log("onmassage", jsep)
         let event = msg["videoroom"];
-
         if (event) {
           if (event === "attached") {
             for (let i = 1; i < 600; i++) {
@@ -89,12 +92,9 @@ const MyRoom = (props) => {
           }
         }
         if (jsep) {
-          // Answer and attach
           remoteFeed.createAnswer({
             jsep: jsep,
-            // Add data:true here if you want to subscribe to datachannels as well
-            // (obviously only works if the publisher offered them in the first place)
-            media: { audioSend: false, videoSend: false }, // We want recvonly audio/video
+            media: { audioSend: true, videoSend: true },
             success: function (jsep) {
               let body = { request: "start", room: myroom };
               remoteFeed.send({ message: body, jsep: jsep });
@@ -104,19 +104,29 @@ const MyRoom = (props) => {
         }
       },
       iceState: function (state) {
-        
+        console.log("state", state)
       },
       webrtcState: function (on) {
     
       },
       onlocalstream: function (stream) {
+          console.log("onlocal streammmm")
+      },
+      muteAudio: function(handleId) {
+        console.log("mote audio", handleId)
+      },
+      onremotetrack: function(track, mid, added) {
+        console.log("onremotetrack", track)
+      },
+      onlocaltrack: function(track, added) {
+        console.log("onlocaltrack", track)
+      },
+      mediaState: function (medium, on) {
+        console.log("media state")
       },
       onremotestream: function (stream) {
-        //
-        setisRemoteVideoMute(stream.getVideoTracks().length === 0);
-        let addButtons = false;
+        console.log("Remote Stream:::", janusRoom)
         if ($("#remotevideo" + remoteFeed.rfindex).length === 0) {
-          // No remote video yet
           $("#videoremote" + remoteFeed.rfindex)
             .children("img")
             .remove();
@@ -130,33 +140,8 @@ const MyRoom = (props) => {
               remoteFeed.rfindex +
               '" width="100%" height="100%" autoplay playsinline/>'
           );
-          $("#videoremote" + remoteFeed.rfindex).append(
-            '<div className="icon-container"><div className="vidicon"><BsFillCameraVideoFill className="vidIcon" /></div><div className="vidicon"><BsFillMicFill /></div></div>'
-          );
-          // Show the video, hide the spinner and show the resolution when we get a playing event
-          $("#remotevideo" + remoteFeed.rfindex).bind("playing", function () {
-            if (remoteFeed.spinner) remoteFeed.spinner.stop();
-            remoteFeed.spinner = null;
+           $("#remotevideo" + remoteFeed.rfindex).bind("playing", function () {
             $("#waitingvideo" + remoteFeed.rfindex).remove();
-            if (this.videoWidth)
-              $("#remotevideo" + remoteFeed.rfindex)
-                .removeClass("hide")
-                .show();
-            // if (Janus.webRTCAdapter.browserDetails.browser === "firefox") {
-            //   // Firefox Stable has a bug: width and height are not immediately available after a playing
-            //   setTimeout(function () {
-            //     let width = $("#remotevideo" + remoteFeed.rfindex).get(
-            //       0
-            //     ).videoWidth;
-            //     let height = $("#remotevideo" + remoteFeed.rfindex).get(
-            //       0
-            //     ).videoHeight;
-            //     $("#curres" + remoteFeed.rfindex)
-            //       .removeClass("hide")
-            //       .text(width + "x" + height)
-            //       .show();
-            //   }, 2000);
-            // }
           });
         }
         Janus.attachMediaStream(
@@ -166,7 +151,6 @@ const MyRoom = (props) => {
         let videoTracks = stream.getVideoTracks();
 
         if (!videoTracks || videoTracks.length === 0) {
-          // No remote video
           $("#remotevideo" + remoteFeed.rfindex).hide();
           if (
             $("#videoremote" + remoteFeed.rfindex + " .no-video-container")
@@ -203,11 +187,9 @@ const MyRoom = (props) => {
     Janus.init({
       debug: "all",
       callback: function () {
-        // Make sure the browser supports WebRTC
         janusRoom = new Janus({
           server: server,
           success: function () {
-            // Attach to VideoRoom plugin
             janusRoom.attach({
               plugin: "janus.plugin.videoroom",
               opaqueId: opaqueId,
@@ -232,12 +214,16 @@ const MyRoom = (props) => {
                 );
               },
               mediaState: function (medium, on) {
+                console.log("media state::")
                 Janus.log(
                   "Janus " +
                     (on ? "started" : "stopped") +
                     " receiving our " +
                     medium
                 );
+              },
+              onMute: function(ev) {
+                console.log("getting on mute")
               },
               webrtcState: function (on) {
                 Janus.log(
@@ -253,7 +239,6 @@ const MyRoom = (props) => {
                 Janus.debug("Event: " + event);
                 if (event != undefined && event != null) {
                   if (event === "joined") {
-                    // Publisher/manager created, negotiate WebRTC and attach to existing feeds, if any
                     myid = msg["id"];
                     mypvtid = msg["private_id"];
                     console.log(
@@ -263,7 +248,6 @@ const MyRoom = (props) => {
                         myid
                     );
                     publishOwnFeed(true);
-                    // Any new feed to attach to?
                     if (
                       msg["publishers"] !== undefined &&
                       msg["publishers"] !== null
@@ -289,10 +273,9 @@ const MyRoom = (props) => {
                       }
                     }
                   } else if (event === "destroyed") {
-                    // The room has been destroyed
                     Janus.warn("The room has been destroyed!");
                   } else if (event === "event") {
-                    // Any new feed to attach to?
+                    console.log("msg::",msg)
                     if (
                       msg["publishers"] !== undefined &&
                       msg["publishers"] !== null
@@ -335,8 +318,7 @@ const MyRoom = (props) => {
                       msg["error"] !== null
                     ) {
                       if (msg["error_code"] === 426) {
-                        // This is a "no such room" error: give a more meaningful description
-                      } else {
+                        } else {
                         alert(msg["error"]);
                       }
                     }
@@ -353,7 +335,6 @@ const MyRoom = (props) => {
                     mystream.getAudioTracks().length > 0 &&
                     !audio
                   ) {
-                    // Audio has been rejected
                     alert(
                       "Our audio stream has been rejected, viewers won't hear us"
                     );
@@ -365,11 +346,9 @@ const MyRoom = (props) => {
                     mystream.getVideoTracks().length > 0 &&
                     !video
                   ) {
-                    // Video has been rejected
                     alert(
                       "Our video stream has been rejected, viewers won't see us"
                     );
-                    // Hide the webcam video
                     $("#myvideo").hide();
                     $("#videolocal").append(
                       '<div class="no-video-container">' +
@@ -381,10 +360,17 @@ const MyRoom = (props) => {
                 }
               },
               onlocalstream: function (stream) {
+                console.log("onlocal stream:",stream.getAudioTracks()[0])
                 mystream = stream;
                 const video = document.querySelector("video#localvideo");
                 const videoTracks = stream.getVideoTracks();
                 video.srcObject = stream;
+              },
+              onremotetrack: function(track, mid, added) {
+                console.log("onremotetrack:", track)
+              },
+              onlocaltrack: function(track, added) {
+                console.log("onlocaltrack:", track)
               },
               oncleanup: function () {
                 Janus.log(
@@ -393,6 +379,12 @@ const MyRoom = (props) => {
                 mystream = null;
               },
             });
+          },
+          ondataopen: function(res) {
+            console.log("ondataopen")
+          },
+          ondata: function(res) {
+            console.log("ondata")
           },
           error: function (error) {
             Janus.error(error);
@@ -406,13 +398,13 @@ const MyRoom = (props) => {
   const muteAudio = () => {
     const handleId = vroomHandle.getId();
     const isMute = vroomHandle.isAudioMuted(handleId);
+    console.log("isMute", isMute, mystream)
     if (isMute) {
       vroomHandle.unmuteAudio(handleId);
-    } else {
+     } else {
       vroomHandle.muteAudio(handleId);
     }
     vroomHandle.createOffer({
-      media: { removeAudio: !isMute },
       success: (jsep: JanusJS.JSEP) => {
         vroomHandle.send({ message: { request: "configure" }, jsep: jsep });
       },
