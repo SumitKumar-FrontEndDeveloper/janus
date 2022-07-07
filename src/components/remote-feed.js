@@ -8,7 +8,8 @@ export const newRemoteFeed = (
   myroom,
   mypvtid,
   feeds,
-  remoteVideoRef
+  remoteVideoRef,
+  handleRemoteStream
 ) => {
   let remoteFeed = null;
   janusRoom.attach({
@@ -65,7 +66,9 @@ export const newRemoteFeed = (
     onlocaltrack: function (track, added) {},
     mediaState: function (medium, on) {},
     onremotestream: function (stream) {
-      remoteVideoRef.current.srcObject = stream;
+        console.log("video track", stream.getVideoTracks().length)
+        remoteVideoRef.current.srcObject = stream;
+        handleRemoteStream(stream)
     },
     oncleanup: function () {
       remoteVideoRef.current.srcObject = "";

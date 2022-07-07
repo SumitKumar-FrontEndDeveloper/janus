@@ -15,6 +15,7 @@ let mystream = null;
 export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
 
     const [vHandle, setVroomHandle] = useState(null);
+    const [isRemoteVideoMute, setIsRemoteVideoMute] = useState(false);
 
     const publishingMyLocalVideo = (useAudio) => {
         console.log("vroomHandle", vroomHandle)
@@ -36,7 +37,10 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
             }
           },
         });
-      };  
+      }; 
+    const handleRemoteStream = (stream) => {
+        setIsRemoteVideoMute(stream.getVideoTracks().length == 0)
+    }
   useEffect(() => {
     Janus.init({
         debug: "all",
@@ -140,7 +144,7 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                               video +
                               ")"
                           );
-                          newRemoteFeed(id, display, audio, video,janusRoom,opaqueId,myroom,mypvtid,feeds,remoteVideoRef);
+                          newRemoteFeed(id, display, audio, video,janusRoom,opaqueId,myroom,mypvtid,feeds,remoteVideoRef, handleRemoteStream);
                         }
                       } else if (
                         msg["leaving"] !== undefined &&
@@ -221,6 +225,10 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
     setVroomHandle(vroomHandle)
   },[vroomHandle])
 
+  useEffect(() => {
+    setIsRemoteVideoMute(isRemoteVideoMute)
+  },[isRemoteVideoMute])
 
-  return { vroomHandle:vHandle }
+
+  return { vroomHandle:vHandle, isRemoteVideoMute }
 };

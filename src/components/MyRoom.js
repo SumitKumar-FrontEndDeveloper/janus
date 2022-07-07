@@ -17,10 +17,10 @@ const server = "http://192.168.1.42:8088/janus";
 const MyRoom = (props) => {
   const [isMuted, setIsMuted] = useState({ local: false, remote: false });
   const [isVideoMute, setIsVideoMute] = useState(false);
-  const [isRemoteVideoMute, setisRemoteVideoMute] = useState(false);
+  //const [isRemoteVideoMute, setisRemoteVideoMute] = useState(false);
   const myVideoRef = useRef()
   const remoteVideoRef = useRef()
-  const { vroomHandle } = useInitJanus({remoteVideoRef, myVideoRef })
+  const { vroomHandle, isRemoteVideoMute } = useInitJanus({remoteVideoRef, myVideoRef })
 
   const muteAudio = () => {
     console.log("vroomHandle", vroomHandle)
@@ -57,6 +57,10 @@ const MyRoom = (props) => {
     });
     setIsVideoMute(!isMuteVideo);
   };
+  useEffect(() => {
+    console.log("isRemoteVideoMute::", isRemoteVideoMute)
+  }, [isRemoteVideoMute])
+  
 
   return (
     <div className="myroom-container">
