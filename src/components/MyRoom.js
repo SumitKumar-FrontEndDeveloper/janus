@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-import offline from "../images/offline.jpg";
 import {
   BsFillCameraVideoFill,
   BsCameraVideoOffFill,
@@ -7,33 +6,31 @@ import {
   BsFillMicMuteFill,
 } from "react-icons/bs";
 
-import Janus from "../janus-lib/Janus";
-
 import { useInitJanus } from './init-janus'
-
-const server = "http://192.168.1.42:8088/janus";
-// server = process.env.REACT_APP_JANUS_URL;
 
 const MyRoom = (props) => {
   const [isMuted, setIsMuted] = useState({ local: false, remote: false });
   const [isVideoMute, setIsVideoMute] = useState(false);
-  //const [isRemoteVideoMute, setisRemoteVideoMute] = useState(false);
   const myVideoRef = useRef()
   const remoteVideoRef = useRef()
-  const { vroomHandle, isRemoteVideoMute } = useInitJanus({remoteVideoRef, myVideoRef })
+  const { vroomHandle, isRemoteVideoMute, localStream } = useInitJanus({remoteVideoRef, myVideoRef })
 
   const muteAudio = () => {
     console.log("vroomHandle", vroomHandle)
     const handleId = vroomHandle.getId();
     const isMute = vroomHandle.isAudioMuted(handleId);
+    console.log("localStream", localStream)
     if (isMute) {
       vroomHandle.unmuteAudio(handleId);
     } else {
       vroomHandle.muteAudio(handleId);
     }
     vroomHandle.createOffer({
+      media : {
+        audioSend: !isMute
+      },
       success: (jsep: JanusJS.JSEP) => {
-        vroomHandle.send({ message: { request: "configure" }, jsep: jsep });
+        vroomHandle.send({ message: { request: "configure", audio: !isMute }, jsep: jsep });
       },
       error: (error: any) => {},
     });
@@ -42,7 +39,7 @@ const MyRoom = (props) => {
   const muteVideo = () => {
     const handleId = vroomHandle.getId();
     const isMuteVideo = vroomHandle.isVideoMuted(handleId);
-
+   
     if (isMuteVideo) {
       vroomHandle.unmuteVideo(handleId);
     } else {

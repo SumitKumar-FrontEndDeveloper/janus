@@ -7,7 +7,6 @@ export const newRemoteFeed = (
   opaqueId,
   myroom,
   mypvtid,
-  feeds,
   remoteVideoRef,
   handleRemoteStream
 ) => {
@@ -31,21 +30,15 @@ export const newRemoteFeed = (
     error: function (error) {
       console.log("  -- Error attaching plugin...", error);
     },
+    ondata: function(msg) {
+      console.log("ondata", msg)
+    },
+    ondataopen: function(msg) {
+      console.log("ondataopen", msg)
+    },
+    
     onmessage: function (msg, jsep) {
-      let event = msg["videoroom"];
-      if (event) {
-        if (event === "attached") {
-          for (let i = 1; i < 600; i++) {
-            if (!feeds[i]) {
-              feeds[i] = remoteFeed;
-              remoteFeed.rfindex = i;
-              break;
-            }
-          }
-          remoteFeed.rfid = msg["id"];
-          remoteFeed.rfdisplay = msg["display"];
-        }
-      }
+      console.log("msg::", msg)
       if (jsep) {
         remoteFeed.createAnswer({
           jsep: jsep,
@@ -60,13 +53,30 @@ export const newRemoteFeed = (
     },
     iceState: function (state) {},
     webrtcState: function (on) {},
-    onlocalstream: function (stream) {},
-    muteAudio: function (handleId) {},
-    onremotetrack: function (track, mid, added) {},
-    onlocaltrack: function (track, added) {},
+    onlocalstream: function (stream) {
+      console.log("onlocalstream")
+    },
+    muteAudio: function (handleId) {
+      console.log("mute audio")
+    },
+    onremotetrack: function (track, mid, added) {
+      console.log("onremotetrack::",track , mid , added)
+    },
+    onlocaltrack: function (track, added) {
+      console.log("onlocaltrack::")
+    },
     mediaState: function (medium, on) {},
     onremotestream: function (stream) {
-        console.log("video track", stream.getVideoTracks().length)
+      console.log("audio status", stream.getAudioTracks())
+      if (
+        stream &&
+        stream.getAudioTracks() &&
+        stream.getAudioTracks().length > 0 &&
+        !audio
+      ) {
+          console.log("hello")
+      }
+        console.log("getUserMedia", stream)
         remoteVideoRef.current.srcObject = stream;
         handleRemoteStream(stream)
     },

@@ -2,21 +2,21 @@ import React, { useState, useEffect } from "react";
 import Janus from "../janus-lib/Janus";
 import { newRemoteFeed } from './remote-feed'
 
-const server = "http://192.168.1.42:8088/janus";
+const server = "http://172.16.10.65:8088/janus";
 let janusRoom = null;
 let vroomHandle = null;
 let myroom = 1234;
 let opaqueId = "videoroom-" + Janus.randomString(12);
 let mypvtid = null;
 let myusername = null;
-let feeds = [];
 let myid = null;
 let mystream = null;
 export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
 
     const [vHandle, setVroomHandle] = useState(null);
     const [isRemoteVideoMute, setIsRemoteVideoMute] = useState(false);
-
+    const [localStream, setlocalStream] = useState(null);
+  
     const publishingMyLocalVideo = (useAudio) => {
         console.log("vroomHandle", vroomHandle)
         vroomHandle.createOffer({
@@ -127,25 +127,13 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                         msg["publishers"] !== undefined &&
                         msg["publishers"] !== null
                       ) {
-                        let list = msg["publishers"];
-                        for (let f in list) {
-                          let id = list[f]["id"];
-                          let display = list[f]["display"];
-                          let audio = list[f]["audio_codec"];
-                          let video = list[f]["video_codec"];
-                          console.log(
-                            "  >> [" +
-                              id +
-                              "] " +
-                              display +
-                              " (audio: " +
-                              audio +
-                              ", video: " +
-                              video +
-                              ")"
-                          );
-                          newRemoteFeed(id, display, audio, video,janusRoom,opaqueId,myroom,mypvtid,feeds,remoteVideoRef, handleRemoteStream);
-                        }
+                        let list = msg["publishers"][0];
+                        let id = list["id"];
+                        let display = list["display"];
+                        let audio = list["audio_codec"];
+                        let video = list["video_codec"];
+                        newRemoteFeed(id, display, audio, video,janusRoom,opaqueId,myroom,mypvtid,remoteVideoRef, handleRemoteStream);
+                       
                       } else if (
                         msg["leaving"] !== undefined &&
                         msg["leaving"] !== null
@@ -172,6 +160,7 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                     }
                   }
                   if (jsep !== undefined && jsep !== null) {
+                    console.log("jsep", jsep)
                     vroomHandle.handleRemoteJsep({ jsep: jsep });
                     let audio = msg["audio_codec"];
                     if (
@@ -198,9 +187,12 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                   }
                 },
                 onlocalstream: function (stream) {
+                    console.log("stream", stream)
+                    setlocalStream(stream)
                    myVideoRef.current.srcObject = stream
                 },
-                onremotetrack: function (track, mid, added) {},
+                onremotetrack: function (track, mid, added) {
+                },
                 onlocaltrack: function (track, added) {},
                 oncleanup: function () {
                   Janus.log(
@@ -230,5 +222,5 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
   },[isRemoteVideoMute])
 
 
-  return { vroomHandle:vHandle, isRemoteVideoMute }
+  return { vroomHandle:vHandle, isRemoteVideoMute, localStream }
 };
