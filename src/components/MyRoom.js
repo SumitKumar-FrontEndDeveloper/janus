@@ -5,114 +5,164 @@ import {
   BsFillMicFill,
   BsFillMicMuteFill,
 } from "react-icons/bs";
+import { Room } from "./janus-lib";
 
-import { useInitJanus } from './init-janus'
-
+var room;
+var username = "BOB";
+var roomId = 1234;
 const MyRoom = (props) => {
-  const [isAudioMuted, setIsAudioMuted] = useState(false);
-  const [isVideoMute, setIsVideoMute] = useState(false);
-  const myVideoRef = useRef()
-  const remoteVideoRef = useRef()
-  const { vroomHandle, isRemoteVideoMute } = useInitJanus({remoteVideoRef, myVideoRef })
+  const [isAudioMute, setIsAudioMute] = useState(false);
+  const [isVideoMute, setIsVideoMute] = useState(false)
 
-  const muteAudio = () => {
-    console.log("vroomHandle", vroomHandle)
-    const handleId = vroomHandle.getId();
-    const isMute = vroomHandle.isAudioMuted(handleId);
-    if (isMute) {
-      vroomHandle.unmuteAudio(handleId);
+  var onError = function (err) {
+    if (err.indexOf("The room is unavailable") > -1) {
+      alert("Room " + roomId + " is unavailable. Let's create one.");
+      room
+        .createRoom({
+          room: roomId,
+        })
+        .then(() => {
+          setTimeout(function () {
+            room.register({
+              username: username,
+              room: roomId,
+            });
+          }, 1000);
+        })
+        .catch((err) => {
+          alert(err);
+        });
     } else {
-      vroomHandle.muteAudio(handleId);
+      alert(err);
     }
-    vroomHandle.createOffer({
-      media: {
-        audioSend: !isMute,
-      },
-      success: (jsep: JanusJS.JSEP) => {
-        var publish = {
-          "request": "configure",
-           "audio": !isMute,
-          // "video": true,
-          // "data": true
-        };
-        vroomHandle.send({ message: publish, jsep: jsep });
-      },
-      error: (error: any) => {},
-    });
-    setIsAudioMuted(!isMute);
   };
-  const muteVideo = () => {
-    const handleId = vroomHandle.getId();
-    const isMuteVideo = vroomHandle.isVideoMuted(handleId);
-   
-    if (isMuteVideo) {
-      vroomHandle.unmuteVideo(handleId);
-    } else {
-      vroomHandle.muteVideo(handleId);
-    }
-    //publishLocalFeed(isAudioMuted , !isMuteVideo)
-    vroomHandle.createOffer({
-      media: { removeVideo: !isMuteVideo },
-      success: (jsep: JanusJS.JSEP) => {
-        vroomHandle.send({ message: { request: "configure" }, jsep: jsep });
-      },
-      error: (error: any) => {},
-    });
-    setIsVideoMute(!isMuteVideo);
+
+  var onWarning = function (msg) {
+    alert(msg);
   };
-  useEffect(() => {
-    console.log("isRemoteVideoMute::", isRemoteVideoMute)
-  }, [isRemoteVideoMute])
+
+ 
+
+  var localToggleMuteAudio = function() {
+    room.toggleMuteAudio()
+      .then((muted) => {
+        setIsAudioMute(muted);
+      });
+  }
   
+var localToggleMuteVideo = function() {
+    room.toggleMuteVideo()
+      .then((muted) => {
+        setIsVideoMute(muted);
+      });
+  }
+
+  var onLocalJoin = function () {
+    console.log("on local joi");
+    var htmlStr = "<div>" + username + "</div>";
+    htmlStr += '<video id="myvideo" width="100%"  autoplay muted="muted"/>';
+    document.getElementById("videolocal").innerHTML = htmlStr;
+    let target = document.getElementById("myvideo");
+    console.log("room", room);
+    room.attachStream(target, 0);
+  };
+
+  var onRemoteJoin = function (index, remoteUsername, feedId) {
+    // document.getElementById('videoremote' + index).innerHTML = '<div>' + remoteUsername + ':' + feedId + '</div><video style="width:inherit;" id="remotevideo' + index + '" autoplay/>';
+    // let target = document.getElementById('remotevideo' + index);
+    // room.attachStream(target, index);
+  };
+
+  var onRemoteUnjoin = function (index) {
+    //document.getElementById('videoremote' + index).innerHTML = '<div>videoremote' + index + '</div>';
+  };
+
+  var onRecordedPlay = function () {
+    // var htmlStr = '<div>playback</div>';
+    // htmlStr += '<video id="playback" style="width:inherit;" autoplay muted="muted"/>';
+    // document.getElementById('videoplayback').innerHTML = htmlStr;
+    // let target = document.getElementById('playback');
+    // room.attachRecordedPlayStream(target);
+  };
+
+  var onMessage = function (data) {
+    if (!data) {
+      return;
+    }
+    if (data.type && data.type === "chat") {
+      document.getElementById("chatbox").innerHTML +=
+        "<p>" + data.sender + " : " + data.message + "</p><hr>";
+    } else if (data.type && data.type === "request") {
+      if (data.action && data.action === "muteAudio") {
+      }
+    }
+  };
+ 
+
+  useEffect(() => {
+    var options = {
+      server: "http://192.168.1.42:8088/janus",
+      room: 1234,
+      token: "a1b2c3d4",
+      extensionId: "bkkjmbohcfkfemepmepailpamnppmjkk",
+      publishOwnFeed: true,
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      useRecordPlugin: true,
+      volumeMeterSkip: 10,
+      onLocalJoin: onLocalJoin,
+      onRemoteJoin: onRemoteJoin,
+      onRemoteUnjoin: onRemoteUnjoin,
+      onRecordedPlay: onRecordedPlay,
+      onMessage: onMessage,
+      onError: onError,
+    };
+    room = new Room(options);
+    room
+      .init()
+      .then(function () {
+        setTimeout(function () {
+          room.register({
+            username: username,
+            room: roomId,
+          });
+        }, 1000);
+      })
+      .catch((err) => {
+        alert(err);
+      });
+  }, []);
 
   return (
     <div className="myroom-container">
-      <div id="myvideo" className="container shorter" >
-        <video
-          id="localvideo"
-          ref={myVideoRef}
-          className="rounded centered"
-          width="100%"
-          height="100%"
-          autoPlay
-          playsInline
-          muted="muted"
-        ></video>
-        
+      <div id="myvideoss" className="container shorter">
+        <div className="videoscreen" id="videolocal"></div>
         <div className="icon-container">
-          <div className="vidicon" onClick={muteVideo}>
+          <div className="vidicon" onClick={localToggleMuteVideo}>
             {isVideoMute ? (
               <BsCameraVideoOffFill className="vidIcon" />
             ) : (
               <BsFillCameraVideoFill className="vidIcon" />
             )}
           </div>
-          <div className="vidicon" onClick={muteAudio}>
-            {isAudioMuted ? <BsFillMicMuteFill /> : <BsFillMicFill />}
+          <div className="vidicon" onClick={localToggleMuteAudio}>
+            {isAudioMute ? <BsFillMicMuteFill /> : <BsFillMicFill />}
           </div>
         </div>
       </div>
       <div className="container shorter">
-        <video
-          id="localvideo"
-          ref={remoteVideoRef}
-          className="rounded centered"
-          width="100%"
-          height="100%"
-          autoPlay
-          playsInline
-          muted="muted"
-        ></video>
+        <div className="videoscreen" id="videoremote1">
+          videoremote1
+        </div>
         <div className="icon-container">
-          <div className="vidicon" onClick={muteVideo}>
-            {isRemoteVideoMute ? (
+          <div className="vidicon" onClick={() => {}}>
+            {true ? (
               <BsCameraVideoOffFill className="vidIcon" />
             ) : (
               <BsFillCameraVideoFill className="vidIcon" />
             )}
           </div>
-          <div className="vidicon">
-            {isAudioMuted ? <BsFillMicMuteFill /> : <BsFillMicFill />}
+          <div className="vidicon" onClick={() => {}}>
+            {true ? <BsFillMicMuteFill /> : <BsFillMicFill />}
           </div>
         </div>
       </div>
