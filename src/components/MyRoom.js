@@ -47,12 +47,24 @@ const MyRoom = (props) => {
   var localToggleMuteAudio = function () {
     room.toggleMuteAudio().then((muted) => {
       setIsAudioMute(muted);
+      room.sendMessage({
+        type: "request",
+        sender: "BOB",
+        action: "muteAudio",
+        isMuted: muted,
+      });
     });
   };
 
   var localToggleMuteVideo = function () {
     room.toggleMuteVideo().then((muted) => {
       setIsVideoMute(muted);
+      room.sendMessage({
+        type: "request",
+        sender: "BOB",
+        action: "muteVideo",
+        isMuted: muted,
+      });
     });
   };
 
