@@ -3127,6 +3127,7 @@ function Janus(gatewayCallbacks) {
 		}
 
 		function isMuted(handleId, video) {
+			console.log("message:::::", handleId, video)
 				var pluginHandle = pluginHandles[handleId];
 				if(!pluginHandle || !pluginHandle.webrtcStuff) {
 						Janus.warn("Invalid handle");

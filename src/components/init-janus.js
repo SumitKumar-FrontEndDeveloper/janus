@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Janus from "../janus-lib/Janus";
 import { newRemoteFeed } from './remote-feed'
 
-const server = "http://172.16.10.65:8088/janus";
+const server = "http://192.168.1.42:8088/janus";
 let janusRoom = null;
 let vroomHandle = null;
 let myroom = 1234;
@@ -49,6 +49,7 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
             server: server,
             success: function () {
               janusRoom.attach({
+
                 plugin: "janus.plugin.videoroom",
                 opaqueId: opaqueId,
                 success: function (pluginHandle) {
@@ -84,7 +85,9 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                   );
                 },
                 onmessage: function (msg, jsep) {
+                  console.log("init:::", msg, jsep)
                   let event = msg["videoroom"];
+                  console.log("event:::::", event)
                   if (event != undefined && event != null) {
                     if (event === "joined") {
                       myid = msg["id"];
@@ -131,8 +134,10 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                         let id = list["id"];
                         let display = list["display"];
                         let audio = list["audio_codec"];
-                        let video = list["video_codec"];
-                        newRemoteFeed(id, display, audio, video,janusRoom,opaqueId,myroom,mypvtid,remoteVideoRef, handleRemoteStream);
+                        let video = list["video_codec"];  
+                        
+                        console.log("jsep:::",jsep)
+                        newRemoteFeed(id, display, audio, video,janusRoom,opaqueId,myroom,mypvtid,remoteVideoRef, handleRemoteStream,vroomHandle);
                        
                       } else if (
                         msg["leaving"] !== undefined &&
@@ -162,34 +167,37 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                   if (jsep !== undefined && jsep !== null) {
                     console.log("jsep", jsep)
                     vroomHandle.handleRemoteJsep({ jsep: jsep });
-                    let audio = msg["audio_codec"];
-                    if (
-                      mystream &&
-                      mystream.getAudioTracks() &&
-                      mystream.getAudioTracks().length > 0 &&
-                      !audio
-                    ) {
-                      alert(
-                        "Our audio stream has been rejected, viewers won't hear us"
-                      );
-                    }
-                    let video = msg["video_codec"];
-                    if (
-                      mystream &&
-                      mystream.getVideoTracks() &&
-                      mystream.getVideoTracks().length > 0 &&
-                      !video
-                    ) {
-                      alert(
-                        "Our video stream has been rejected, viewers won't see us"
-                      );
-                    }
+                    //let audio = msg["audio_codec"];
+                    // if (
+                    //   mystream &&
+                    //   mystream.getAudioTracks() &&
+                    //   mystream.getAudioTracks().length > 0 &&
+                    //   !audio
+                    // ) {
+                    //   alert(
+                    //     "Our audio stream has been rejected, viewers won't hear us"
+                    //   );
+                    // }
+                    // let video = msg["video_codec"];
+                    // if (
+                    //   mystream &&
+                    //   mystream.getVideoTracks() &&
+                    //   mystream.getVideoTracks().length > 0 &&
+                    //   !video
+                    // ) {
+                    //   alert(
+                    //     "Our video stream has been rejected, viewers won't see us"
+                    //   );
+                    // }
                   }
                 },
                 onlocalstream: function (stream) {
                     console.log("stream", stream)
                     setlocalStream(stream)
                    myVideoRef.current.srcObject = stream
+                },
+                onremotestream: function (stream) {
+                  console.log("init stream", stream)
                 },
                 onremotetrack: function (track, mid, added) {
                 },

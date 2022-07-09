@@ -8,7 +8,8 @@ export const newRemoteFeed = (
   myroom,
   mypvtid,
   remoteVideoRef,
-  handleRemoteStream
+  handleRemoteStream,
+  vroomHandle
 ) => {
   let remoteFeed = null;
   janusRoom.attach({
@@ -38,12 +39,14 @@ export const newRemoteFeed = (
     },
     
     onmessage: function (msg, jsep) {
+      console.log("msg::", vroomHandle.isAudioMuted(vroomHandle.getId(), false))
       console.log("msg::", msg)
       if (jsep) {
         remoteFeed.createAnswer({
           jsep: jsep,
           media: { audioSend: true, videoSend: true },
           success: function (jsep) {
+            console.log("my audio status",)
             let body = { request: "start", room: myroom };
             remoteFeed.send({ message: body, jsep: jsep });
           },
@@ -65,12 +68,14 @@ export const newRemoteFeed = (
     onlocaltrack: function (track, added) {
       console.log("onlocaltrack::")
     },
-    mediaState: function (medium, on) {},
+    mediaState: function (medium, on) {
+      console.log("media state")
+    },
     onremotestream: function (stream) {
-      console.log("audio status", stream.getAudioTracks())
+      console.log("message:::", stream.getTracks())
+      //console.log("message::", vroomHandle.isAudioMuted(vroomHandle.getId(), false))
       if (
         stream &&
-        stream.getAudioTracks() &&
         stream.getAudioTracks().length > 0 &&
         !audio
       ) {
