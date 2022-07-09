@@ -13,27 +13,36 @@ const MyRoom = (props) => {
   const [isVideoMute, setIsVideoMute] = useState(false);
   const myVideoRef = useRef()
   const remoteVideoRef = useRef()
-  const { vroomHandle, isRemoteVideoMute, localStream } = useInitJanus({remoteVideoRef, myVideoRef })
+  const { vroomHandle, isRemoteVideoMute, publishLocalFeed } = useInitJanus({remoteVideoRef, myVideoRef })
 
   const muteAudio = () => {
     console.log("vroomHandle", vroomHandle)
     const handleId = vroomHandle.getId();
     const isMute = vroomHandle.isAudioMuted(handleId);
-    console.log("localStream", localStream)
     if (isMute) {
       vroomHandle.unmuteAudio(handleId);
     } else {
       vroomHandle.muteAudio(handleId);
     }
-    vroomHandle.createOffer({
-      media : {
-        audioSend: !isMute
-      },
-      success: (jsep: JanusJS.JSEP) => {
-        vroomHandle.send({ message: { request: "configure", audio: !isMute }, jsep: jsep });
-      },
-      error: (error: any) => {},
-    });
+    publishLocalFeed(!isMute)
+    // vroomHandle.createOffer({
+    //   media: {
+    //     videoRecv: false,
+    //     audioSend: !isMute,
+    //     videoSend: true,
+    //     data: true,
+    //   },
+    //   success: (jsep: JanusJS.JSEP) => {
+    //     var publish = {
+    //       "request": "configure",
+    //       "audio": !isMute,
+    //       "video": true,
+    //       "data": true
+    //     };
+    //     vroomHandle.send({ message: publish, jsep: jsep });
+    //   },
+    //   error: (error: any) => {},
+    // });
     setIsMuted({ ...isMuted, local: !isMute });
   };
   const muteVideo = () => {
@@ -45,13 +54,13 @@ const MyRoom = (props) => {
     } else {
       vroomHandle.muteVideo(handleId);
     }
-    vroomHandle.createOffer({
-      media: { removeVideo: !isMuteVideo },
-      success: (jsep: JanusJS.JSEP) => {
-        vroomHandle.send({ message: { request: "configure" }, jsep: jsep });
-      },
-      error: (error: any) => {},
-    });
+    // vroomHandle.createOffer({
+    //   media: { removeVideo: !isMuteVideo },
+    //   success: (jsep: JanusJS.JSEP) => {
+    //     vroomHandle.send({ message: { request: "configure" }, jsep: jsep });
+    //   },
+    //   error: (error: any) => {},
+    // });
     setIsVideoMute(!isMuteVideo);
   };
   useEffect(() => {

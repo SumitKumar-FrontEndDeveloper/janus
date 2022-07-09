@@ -44,7 +44,7 @@ export const newRemoteFeed = (
       if (jsep) {
         remoteFeed.createAnswer({
           jsep: jsep,
-          media: { audioSend: true, videoSend: true },
+         // media: { audioSend: true, videoSend: true },
           success: function (jsep) {
             console.log("my audio status",)
             let body = { request: "start", room: myroom };
@@ -73,6 +73,11 @@ export const newRemoteFeed = (
     },
     onremotestream: function (stream) {
       console.log("message:::", stream.getTracks())
+      if (stream.getAudioTracks().length > 0) {
+        stream.getAudioTracks()[0].onmute = function(ev){
+            console.log("on mute")
+        }
+      }
       //console.log("message::", vroomHandle.isAudioMuted(vroomHandle.getId(), false))
       if (
         stream &&

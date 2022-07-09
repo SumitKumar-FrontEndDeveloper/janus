@@ -8,16 +8,16 @@ let vroomHandle = null;
 let myroom = 1234;
 let opaqueId = "videoroom-" + Janus.randomString(12);
 let mypvtid = null;
-let myusername = null;
+let myusername = 'null';
 let myid = null;
 let mystream = null;
 export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
 
     const [vHandle, setVroomHandle] = useState(null);
     const [isRemoteVideoMute, setIsRemoteVideoMute] = useState(false);
-    const [localStream, setlocalStream] = useState(null);
+    
   
-    const publishingMyLocalVideo = (useAudio) => {
+    const publishLocalFeed = (useAudio) => {
         console.log("vroomHandle", vroomHandle)
         vroomHandle.createOffer({
           media: {
@@ -33,7 +33,7 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
           error: function (error) {
             Janus.error("WebRTC error:", error);
             if (useAudio) {
-                publishingMyLocalVideo(false);
+              publishLocalFeed(false);
             }
           },
         });
@@ -60,7 +60,7 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                     request: "join",
                     room: myroom,
                     ptype: "publisher",
-                    display: reg,
+                    display: reg,// register name chih need to enter
                   };
                   myusername = reg;
                   vroomHandle.send({ message: register });
@@ -98,7 +98,7 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                           " with ID " +
                           myid
                       );
-                      publishingMyLocalVideo(true);
+                      publishLocalFeed(true);
                       if (
                         msg["publishers"] !== undefined &&
                         msg["publishers"] !== null
@@ -193,7 +193,6 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                 },
                 onlocalstream: function (stream) {
                     console.log("stream", stream)
-                    setlocalStream(stream)
                    myVideoRef.current.srcObject = stream
                 },
                 onremotestream: function (stream) {
@@ -230,5 +229,5 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
   },[isRemoteVideoMute])
 
 
-  return { vroomHandle:vHandle, isRemoteVideoMute, localStream }
+  return { vroomHandle:vHandle, isRemoteVideoMute, publishLocalFeed }
 };

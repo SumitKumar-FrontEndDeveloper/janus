@@ -26,6 +26,7 @@ class App extends React.Component {
               <Switch>
                 <Route path="/" exact component={Home} />
                 <Route path="/myroom" component={MyRoom} />
+                
               </Switch>
             </React.Fragment>
           </div>
