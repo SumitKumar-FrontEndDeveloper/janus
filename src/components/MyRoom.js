@@ -44,8 +44,6 @@ const MyRoom = (props) => {
     alert(msg);
   };
 
- 
-
   var localToggleMuteAudio = function() {
     room.toggleMuteAudio()
       .then((muted) => {
@@ -64,6 +62,13 @@ var localToggleMuteVideo = function() {
     room.toggleMuteVideo()
       .then((muted) => {
         setIsVideoMute(muted);
+        room.sendMessage({
+          type: 'request',
+          sender: 'BOB',
+          action: 'muteVideo',
+          isMuted: muted
+          
+        })
       });
   }
 
