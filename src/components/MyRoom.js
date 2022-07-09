@@ -12,7 +12,7 @@ var username = "BOB";
 var roomId = 1234;
 const MyRoom = (props) => {
   const [isAudioMute, setIsAudioMute] = useState(false);
-  const [isVideoMute, setIsVideoMute] = useState(false)
+  const [isVideoMute, setIsVideoMute] = useState(false);
 
   var onError = function (err) {
     if (err.indexOf("The room is unavailable") > -1) {
@@ -41,21 +41,17 @@ const MyRoom = (props) => {
     alert(msg);
   };
 
- 
+  var localToggleMuteAudio = function () {
+    room.toggleMuteAudio().then((muted) => {
+      setIsAudioMute(muted);
+    });
+  };
 
-  var localToggleMuteAudio = function() {
-    room.toggleMuteAudio()
-      .then((muted) => {
-        setIsAudioMute(muted);
-      });
-  }
-  
-var localToggleMuteVideo = function() {
-    room.toggleMuteVideo()
-      .then((muted) => {
-        setIsVideoMute(muted);
-      });
-  }
+  var localToggleMuteVideo = function () {
+    room.toggleMuteVideo().then((muted) => {
+      setIsVideoMute(muted);
+    });
+  };
 
   var onLocalJoin = function () {
     console.log("on local joi");
@@ -97,7 +93,6 @@ var localToggleMuteVideo = function() {
       }
     }
   };
- 
 
   useEffect(() => {
     var options = {
