@@ -14,6 +14,9 @@ const MyRoom = (props) => {
   const [isAudioMute, setIsAudioMute] = useState(false);
   const [isVideoMute, setIsVideoMute] = useState(false);
 
+  const [isRemoteAudioMute, setIsRemoteAudioMute] = useState(false);
+  const [isRemoteVideoMute, setIsRemoteVideoMute] = useState(false);
+
   var onError = function (err) {
     if (err.indexOf("The room is unavailable") > -1) {
       alert("Room " + roomId + " is unavailable. Let's create one.");
@@ -64,9 +67,15 @@ const MyRoom = (props) => {
   };
 
   var onRemoteJoin = function (index, remoteUsername, feedId) {
-    // document.getElementById('videoremote' + index).innerHTML = '<div>' + remoteUsername + ':' + feedId + '</div><video style="width:inherit;" id="remotevideo' + index + '" autoplay/>';
-    // let target = document.getElementById('remotevideo' + index);
-    // room.attachStream(target, index);
+    console.log("on remote join");
+    document.getElementById("videoremote" + index).innerHTML =
+      "<div>" +
+      remoteUsername +
+      '</div><video style="width:100%;" id="remotevideo' +
+      index +
+      '" autoplay/>';
+    let target = document.getElementById("remotevideo" + index);
+    room.attachStream(target, index);
   };
 
   var onRemoteUnjoin = function (index) {
@@ -86,10 +95,11 @@ const MyRoom = (props) => {
       return;
     }
     if (data.type && data.type === "chat") {
-      document.getElementById("chatbox").innerHTML +=
-        "<p>" + data.sender + " : " + data.message + "</p><hr>";
     } else if (data.type && data.type === "request") {
       if (data.action && data.action === "muteAudio") {
+        setIsRemoteAudioMute(data.isMuted);
+      } else if (data.action && data.action === "muteVideo") {
+        setIsRemoteVideoMute(data.isMuted);
       }
     }
   };
@@ -150,14 +160,14 @@ const MyRoom = (props) => {
         </div>
         <div className="icon-container">
           <div className="vidicon" onClick={() => {}}>
-            {true ? (
+            {isRemoteVideoMute ? (
               <BsCameraVideoOffFill className="vidIcon" />
             ) : (
               <BsFillCameraVideoFill className="vidIcon" />
             )}
           </div>
           <div className="vidicon" onClick={() => {}}>
-            {true ? <BsFillMicMuteFill /> : <BsFillMicFill />}
+            {isRemoteAudioMute ? <BsFillMicMuteFill /> : <BsFillMicFill />}
           </div>
         </div>
       </div>
