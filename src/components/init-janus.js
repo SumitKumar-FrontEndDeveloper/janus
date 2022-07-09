@@ -17,14 +17,14 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
     const [isRemoteVideoMute, setIsRemoteVideoMute] = useState(false);
     
   
-    const publishLocalFeed = (useAudio) => {
+    const publishLocalFeed = (useAudio, useVideo=true) => {
         console.log("vroomHandle", vroomHandle)
         vroomHandle.createOffer({
           media: {
             audioRecv: true,
             videoRecv: true,
             audioSend: useAudio,
-            videoSend: true,
+            videoSend: useVideo,
           },
           success: function (jsep) {
             const publish = { request: "configure", audio: useAudio, video: true };
@@ -167,28 +167,6 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
                   if (jsep !== undefined && jsep !== null) {
                     console.log("jsep", jsep)
                     vroomHandle.handleRemoteJsep({ jsep: jsep });
-                    //let audio = msg["audio_codec"];
-                    // if (
-                    //   mystream &&
-                    //   mystream.getAudioTracks() &&
-                    //   mystream.getAudioTracks().length > 0 &&
-                    //   !audio
-                    // ) {
-                    //   alert(
-                    //     "Our audio stream has been rejected, viewers won't hear us"
-                    //   );
-                    // }
-                    // let video = msg["video_codec"];
-                    // if (
-                    //   mystream &&
-                    //   mystream.getVideoTracks() &&
-                    //   mystream.getVideoTracks().length > 0 &&
-                    //   !video
-                    // ) {
-                    //   alert(
-                    //     "Our video stream has been rejected, viewers won't see us"
-                    //   );
-                    // }
                   }
                 },
                 onlocalstream: function (stream) {

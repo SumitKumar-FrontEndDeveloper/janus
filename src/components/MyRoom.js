@@ -9,7 +9,7 @@ import {
 import { useInitJanus } from './init-janus'
 
 const MyRoom = (props) => {
-  const [isMuted, setIsMuted] = useState({ local: false, remote: false });
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoMute, setIsVideoMute] = useState(false);
   const myVideoRef = useRef()
   const remoteVideoRef = useRef()
@@ -24,7 +24,7 @@ const MyRoom = (props) => {
     } else {
       vroomHandle.muteAudio(handleId);
     }
-    publishLocalFeed(!isMute)
+    publishLocalFeed(!isMute, isVideoMute)
     // vroomHandle.createOffer({
     //   media: {
     //     videoRecv: false,
@@ -43,7 +43,7 @@ const MyRoom = (props) => {
     //   },
     //   error: (error: any) => {},
     // });
-    setIsMuted({ ...isMuted, local: !isMute });
+    setIsAudioMuted(!isMute);
   };
   const muteVideo = () => {
     const handleId = vroomHandle.getId();
@@ -54,6 +54,7 @@ const MyRoom = (props) => {
     } else {
       vroomHandle.muteVideo(handleId);
     }
+    publishLocalFeed(isAudioMuted , !isMuteVideo)
     // vroomHandle.createOffer({
     //   media: { removeVideo: !isMuteVideo },
     //   success: (jsep: JanusJS.JSEP) => {
@@ -91,7 +92,7 @@ const MyRoom = (props) => {
             )}
           </div>
           <div className="vidicon" onClick={muteAudio}>
-            {isMuted?.local ? <BsFillMicMuteFill /> : <BsFillMicFill />}
+            {isAudioMuted ? <BsFillMicMuteFill /> : <BsFillMicFill />}
           </div>
         </div>
       </div>
@@ -115,7 +116,7 @@ const MyRoom = (props) => {
             )}
           </div>
           <div className="vidicon">
-            {isMuted?.remote ? <BsFillMicMuteFill /> : <BsFillMicFill />}
+            {isAudioMuted ? <BsFillMicMuteFill /> : <BsFillMicFill />}
           </div>
         </div>
       </div>
