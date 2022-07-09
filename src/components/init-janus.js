@@ -17,14 +17,14 @@ export const useInitJanus = ({ myVideoRef, remoteVideoRef}) => {
     const [isRemoteVideoMute, setIsRemoteVideoMute] = useState(false);
     
   
-    const publishLocalFeed = (useAudio, useVideo=true) => {
+    const publishLocalFeed = (useAudio) => {
         console.log("vroomHandle", vroomHandle)
         vroomHandle.createOffer({
           media: {
             audioRecv: true,
             videoRecv: true,
             audioSend: useAudio,
-            videoSend: useVideo,
+            videoSend: true,
           },
           success: function (jsep) {
             const publish = { request: "configure", audio: useAudio, video: true };
