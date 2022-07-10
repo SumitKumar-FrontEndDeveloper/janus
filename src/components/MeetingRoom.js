@@ -96,7 +96,8 @@ const MeetingRoom = (props) => {
           
         })
       });
-  }
+    };
+  
 
   const onLocalJoin = function () {
     console.log("on local joi");
@@ -123,7 +124,6 @@ const MeetingRoom = (props) => {
       return;
     }
     if (data.type && data.type === "chat") {
-      
     } else if (data.type && data.type === "request") {
       if (data.action && data.action === "muteAudio") {
         setMeetingConfig({...meetingConfig, isRemoteAudioMute: data.isMuted});
