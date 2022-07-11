@@ -1,8 +1,6 @@
-import logo from "../images/logo.svg";
 import React, { useState } from 'react';
-import { Link } from "react-router-dom";
 import './../App.css';
-import  { Redirect, useHistory } from 'react-router-dom'
+import  {  useHistory } from 'react-router-dom'
 
 const Home = (props) => {
 	const [userData, setUserData] = useState({roomnumber:'',username:'', uerror: false, rerror: false})

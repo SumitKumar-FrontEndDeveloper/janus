@@ -11,12 +11,11 @@ import { useParams } from 'react-router-dom'
 var room
 const MeetingRoom = (props) => {
   const { username, roomid } = useParams();
-  const [meetingConfig, setMeetingConfig] = useState({
-    isLocalAudioMute: false,
-    isLocalVideoMute: false,
-    isRemoteAudioMute: false,
-    isRemoteVideoMute: false
-  })
+  const [isLocalAudioMute , setIsLocalAudioMute] = useState(false)
+  const [isLocalVideoMute , setIsLocalVideoMute] = useState(false)
+  const [isRemoteAudioMute , setIsRemoteAudioMute] = useState(false)
+  const [isRemoteVideoMute , setIsRemoteVideoMute] = useState(false)
+  
   
   useEffect(() => {
     var options = {
@@ -73,7 +72,7 @@ const MeetingRoom = (props) => {
   const localToggleMuteAudio = function() {
     room.toggleMuteAudio()
       .then((muted) => {
-        setMeetingConfig({...meetingConfig, isLocalAudioMute: muted});
+        setIsLocalAudioMute(muted)
         room.sendMessage({
           type: 'request',
           sender: 'BOB',
@@ -87,7 +86,7 @@ const MeetingRoom = (props) => {
   const localToggleMuteVideo = function() {
     room.toggleMuteVideo()
       .then((muted) => {
-        setMeetingConfig({...meetingConfig, isLocalVideoMute: muted});
+        setIsLocalVideoMute(muted)
         room.sendMessage({
           type: 'request',
           sender: 'BOB',
@@ -126,9 +125,10 @@ const MeetingRoom = (props) => {
     if (data.type && data.type === "chat") {
     } else if (data.type && data.type === "request") {
       if (data.action && data.action === "muteAudio") {
-        setMeetingConfig({...meetingConfig, isRemoteAudioMute: data.isMuted});
+        console.log("muteAudio", data.isMuted)
+        setIsRemoteAudioMute(data.isMuted)
       } else if (data.action && data.action === "muteVideo") {
-        setMeetingConfig({...meetingConfig, isRemoteVideoMute: data.isMuted});
+        setIsRemoteVideoMute(data.isMuted)
       }
     }
   };
@@ -139,14 +139,14 @@ const MeetingRoom = (props) => {
         <div className="videoscreen" id="videolocal"></div>
         <div className="icon-container">
           <div className="vidicon" onClick={localToggleMuteVideo}>
-            {meetingConfig.isLocalVideoMute ? (
+            {isLocalVideoMute ? (
               <BsCameraVideoOffFill className="vidIcon" />
             ) : (
               <BsFillCameraVideoFill className="vidIcon" />
             )}
           </div>
           <div className="vidicon" onClick={localToggleMuteAudio}>
-            {meetingConfig.isLocalAudioMute ? <BsFillMicMuteFill /> : <BsFillMicFill />}
+            {isLocalAudioMute ? <BsFillMicMuteFill /> : <BsFillMicFill />}
           </div>
         </div>
       </div>
@@ -156,14 +156,14 @@ const MeetingRoom = (props) => {
         </div>
         <div className="icon-container">
           <div className="vidicon" onClick={() => {}}>
-            {meetingConfig.isRemoteVideoMute ? (
+            {isRemoteVideoMute ? (
               <BsCameraVideoOffFill className="vidIcon" />
             ) : (
               <BsFillCameraVideoFill className="vidIcon" />
             )}
           </div>
           <div className="vidicon" onClick={() => {}}>
-            {meetingConfig.isRemoteAudioMute ? <BsFillMicMuteFill /> : <BsFillMicFill />}
+            {isRemoteAudioMute ? <BsFillMicMuteFill /> : <BsFillMicFill />}
           </div>
         </div>
       </div>

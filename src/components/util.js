@@ -318,12 +318,7 @@ function newRemoteFeed(id, display, audio, video) {
             remoteFeed.rfid = msg["id"];
             remoteFeed.rfdisplay = msg["display"];
             Janus.log("Successfully attached to feed " + remoteFeed.rfid + " (" + remoteFeed.rfdisplay + ") in room " + msg["room"]);
-          } else if (event === "event") {
-           
-            
-          } else {
-            // What has just happened?
-          }
+          } 
         }
         if (jsep !== undefined && jsep !== null) {
           Janus.debug("Handling SDP as well...");
